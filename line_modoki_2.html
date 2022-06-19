@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style_2.css">
+</head>
+<body>
+  <!-- ▼LINE風ここから -->
+  <div class="line__container">
+    <!-- タイトル -->
+    <div class="line__title">
+      ボッチ用LINE風チャット
+    </div>
+    <div class="message-area">
+      <div class="message-area-text">
+        <unamearea>
+            名前：<select id="uname">
+                <option value="自分">じぶん</option>
+                <option value="エア友達">えあフレンズ</option>
+                </select>
+        </unamearea>
+        <textarea id="text"></textarea>
+
+    </div>
+      <div class="message-area-button">
+        <button id="send" class="disabled-button">送信</button>
+      </div>
+    </div>
+    <!-- ▼会話エリア scrollを外すと高さ固定解除 -->
+    <div id="output" class="line__contents scroll">
+    </div>
+    <!--　▲会話エリア ここまで -->
+  </div>
+  <!--　▲LINE風ここまで -->
+<!--　▲LINE風ここまで -->
+
+
+<!-- JQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<!-- JQuery -->
+
+
+<!--** 以下Firebase **-->
+<script type="module">
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js";
+import {
+    getDatabase,
+    ref,
+    push,
+    set,
+    onChildAdded,
+    remove,
+    onChildRemoved,
+} from "https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js";
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "@@@@@@@@@@@@@@@@@@@@",
+  authDomain: "@@@@@@@@@@@@@@@@@@@@",
+  databaseURL: "@@@@@@@@@@@@@@@@@@@@",
+  projectId: "@@@@@@@@@@@@@@@@@@@@",
+  storageBucket: "@@@@@@@@@@@@@@@@@@@@",
+  messagingSenderId: "@@@@@@@@@@@@@@@@@@@@",
+  appId: "@@@@@@@@@@@@@@@@@@@@",
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app); //RealtimeDBに接続
+const dbRef = ref(db,"chat"); //RealtimeDB内の"chat"を使う
+
+//送信のボタンが押されたらデータを登録する処理を書きます
+$('#send').on('click',function(){
+        const unameValue = $("#uname").val();
+        const textValue = $("#text").val();
+
+     // データの塊を作成
+    const msg = {
+        uname: unameValue,
+        text: textValue,
+    }
+    const newPostRef = push(dbRef); //ユニークKEYを生成
+    set(newPostRef, msg);           //"chat"にユニークKEYをつけてオブジェクトデータを登録
+
+    //★入力欄を空にする
+    $("#uname").val("ユーザーを選択してください");//空にする
+    $("#text").val("テキストを入力してください");//空にする
+});
+
+    // 受信処理を記述します🤗
+    onChildAdded(dbRef, function (data) {
+        const msg = data.val();
+        //console.log(msg, "dataを取得");
+        const kagi = data.key
+        // console.log(kagi, "鍵");
+
+        let html = "";
+
+        if (msg.uname === "エア友達") {
+        html = `
+        <div class=${kagi}>
+          <div class="line__left">
+            <figure>
+              <img src="icon.png" />
+            </figure>
+            <div class="line__left-text">
+              <div class="text">${msg.text}</div>
+        </div>
+        `;
+       }else{
+        html = `
+        <div class=${kagi}>
+          <div class="line__right">
+            <div class="line__right-text">
+            <div class="text">${msg.text}</div>
+            <span class="date">${msg.uname}</span>
+        </div>
+        `;
+       }
+
+          $("#output").append(html);
+        });
+
+</script>
+
+
+
+</body>
+</html>
